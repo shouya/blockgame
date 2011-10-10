@@ -1,11 +1,11 @@
-#include <blockstyle.h>
+#include <shape.h>
 
 #define _ {
 #define O 1,
 #define X 0,
 #define __ },
-/*          styleno,   y, x  */
-char styles [NUM_STYLE][4][3] = {
+/*            styleno,   y, x  */
+char g_shapes [NUM_SHAPES][4][3] = {
   { /* O */
     _ O O X __
     _ O O X __
@@ -49,3 +49,4 @@ char styles [NUM_STYLE][4][3] = {
     _ X X X __
   },
 };
+

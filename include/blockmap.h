@@ -18,7 +18,7 @@ void initbmap(void);
 #define POS_LEFT (-1)
 #define POS_RIGHT 1
 
-void insertblock(int position, int block_type);
+void insertblock(int position, int shape);
 
 
 #endif /* _blockmap_h_ */

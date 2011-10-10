@@ -12,6 +12,6 @@ void initbmap(void) {
   }
 }
 
-void insertblock(int position, int style) {
+void insertblock(int position, int shape) {
   
 }
