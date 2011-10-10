@@ -38,6 +38,6 @@ void makedefault(void) {
 
   for (; i != MAX_LEVEL; ++i) {
     /* avg spd btw 100-500 */
-    g_speed[i] = 100 + (500-100)/MAX_LEVEL*i;
+    g_speed[i] = 500 - (500-100)/MAX_LEVEL*i;
   }
 }

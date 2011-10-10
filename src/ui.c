@@ -1,3 +1,6 @@
+#include <time.h>
+#include <stdlib.h>
+
 #include <sched.h>
 
 #include <SDL/SDL.h>
@@ -6,6 +9,9 @@
 #include <canvas.h>
 #include <graphics.h>
 #include <control.h>
+#include <game.h>
+#include <config.h>
+#include <blockmap.h>
 
 SDL_Surface* g_ui;
 
@@ -39,13 +45,22 @@ void destroyui(void) {
 
 void mainloop(void) {
   is_quit = 0;
+  int tick = SDL_GetTicks();
 
   SDL_EnableKeyRepeat(200, 100);
 
-
+  srand(time(NULL));
   for (; !is_quit;) {
     eventdeal();
     renderframe();
+
+    if (g_state == GAME_STARTED) {
+      if (SDL_GetTicks() - tick >= g_speed[g_level]) {
+        tick = SDL_GetTicks();
+        automovedown();
+      }
+    }
+
     sched_yield();
   }
 
@@ -76,6 +91,12 @@ void kbdeventdeal(SDL_KeyboardEvent* e) {
     if (e->keysym.mod & KMOD_CTRL) {
       newgame();
     }
+    break;
+  case SDLK_LEFT:
+    ctrlleft();
+    break;
+  case SDLK_RIGHT:
+    ctrlright();
     break;
   default:;
   }

@@ -43,6 +43,11 @@ void rendercanvas(void) {
         drawrect(canvas, x, y, g_boxsize, g_boxsize,
                  0xff, 0xff, 0xff, 0x7f);
 
+      } else if (bmap[j*g_cols+i].flags & FLAG_GHOST) {
+        x = i * g_boxsize;
+        y = j * g_boxsize;
+        drawrect(canvas, x, y, g_boxsize, g_boxsize,
+                 0xff, 0xff, 0xff, 0xff);
       }
     }
   }

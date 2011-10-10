@@ -14,5 +14,7 @@
 #define CANVAS_X 0
 #define CANVAS_Y 0
 
+#define SCORE_PER_LINE 10
+
 
 #endif /* _defines_h_ */

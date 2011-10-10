@@ -8,6 +8,13 @@ struct block_t {
   unsigned char flags;
 };
 
+#define FLAG_TRY       0x1
+#define FLAG_MOVABLE   0x2
+#define FLAG_STEADY    0x4
+#define FLAG_GHOST     0x8
+
+
+
 /* typedef block_t block_t; */
 
 /* block_t bmap[y*g_cols + x],
@@ -37,6 +44,10 @@ int trymove(int direction);
 void domove(int direction);
 
 void steadyall(void);
+
+void checklines(void);
+
+void createghost(void);
 
 
 #endif /* _blockmap_h_ */
