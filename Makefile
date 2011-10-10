@@ -22,21 +22,23 @@ ifeq ($(PROFILE), yes)
 	CFLAGS += -pg
 endif
 
-CFLAGS += $(LIBS)
 CFLAGS += $(OPTIMIZATION)
+CFLAGS += -I$(INC_DIR)
 
 all: blockgame
 
 
 blockgame: $(OBJECTS)
-	gcc $(CFLAGS) -o $(BIN_DIR)/$@ $^
+	gcc $(CFLAGS) -o $(BIN_DIR)/$@ $^ $(LIBS)
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $<
+	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
 	rm -f $(BIN_DIR)/*
 	rm -f $(SRC_DIR)/*.o
+
+rebuild: clean all
 
 
 .PHONY : clean

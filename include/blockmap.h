@@ -1,24 +1,42 @@
 #ifndef _blockmap_h_
 #define _blockmap_h_
 
-struct {
-  unsigned char r, g, b;
-  unsigned char is_steady;
-} block_t;
+
+struct block_t {
+  unsigned char shape;
+  unsigned char is_occupied;
+  unsigned char flags;
+};
 
 /* typedef block_t block_t; */
 
-/* block_t bmap[y][x],
- * y = g_rows, x = g_cols */
-extern struct block_t** bmap;
+/* block_t bmap[y*g_cols + x],
+ * y = g_lines, x = g_cols */
+extern struct block_t* bmap;
+
 
 void initbmap(void);
+void resetbmap(void);
 
-#define POS_CENTER 0
-#define POS_LEFT (-1)
-#define POS_RIGHT 1
+void destroybmap(void);
 
-void insertblock(int position, int shape);
+void automovedown(void);
+void moveleft(void);
+void moveright(void);
+
+void newshape(int shape);
+
+int trycreateshape(void);
+void createshape(void);
+
+#define MOVE_LEFT 1
+#define MOVE_RIGHT 2
+#define MOVE_DOWN 3
+
+int trymove(int direction);
+void domove(int direction);
+
+void steadyall(void);
 
 
 #endif /* _blockmap_h_ */

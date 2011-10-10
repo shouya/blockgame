@@ -32,8 +32,8 @@ int main() {
     }
 /*    SDL_FillRect(sfc, &sfc->clip_rect, mapRGB(sfc, 0,0,0));*/
     SDL_FillRect(sfc, &sfc->clip_rect, PIXRGB(0,0,0));
-    drawrect(sfc->pixels, x+10, y, 100, 200, 127, 255, 255);
-    drawrect(sfc->pixels, x, y+10, 100, 200, 127, 255, 255);
+    drawrect(sfc->pixels, x+10, y, 100, 200, 255, 0, 0);
+    drawrect(sfc->pixels, x, y+10, 100, 200, 0, 255, 0);
     drawrect(sfc->pixels, x, y, 100, 200, 127, 255, 255);
     drawrect(sfc->pixels, x+10, y+10, 100, 200, 127, 255, 255);
 

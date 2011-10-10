@@ -9,9 +9,10 @@
 
 #define MAX_LEVEL 15
 
-#define XRES 100
-#define YRES 200
+#define XRES 200
+#define YRES 400
 #define CANVAS_X 0
 #define CANVAS_Y 0
+
 
 #endif /* _defines_h_ */

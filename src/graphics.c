@@ -20,10 +20,10 @@ inl void drawpixel(SDL_Surface* sfc, int x, int y,
     SDL_GetRGB(((Uint32*)sfc->pixels)[y*sfc->clip_rect.w+x],
                 sfc->format, &o_r, &o_g, &o_b);
     r = r*a + o_r*(0xff-a);
-    g = g*a + o_r*(0xff-a);
-    b = g*a + o_r*(0xff-a);
+    g = g*a + o_g*(0xff-a);
+    b = b*a + o_b*(0xff-a);
   }
-  ((Uint32*)sfc->pixels)[y*sfc->clip_rect.w+x] = mapRGB(r, g, b);
+  ((Uint32*)sfc->pixels)[y*sfc->clip_rect.w+x] = mapRGB(sfc, r, g, b);
 }
 
 inl void drawrect(SDL_Surface* sfc, int x, int y, int w, int h,
