@@ -24,10 +24,18 @@ form   o o   o    o       o    o o       o o     o
 #define SHAPE_S 5
 #define SHAPE_T 6
 
-/*                  shapeno,    y,           x  */
-extern char g_shape[NUM_SHAPES][SHAPE_MAX_H][SHAPE_MAX_W];
-extern unsigned long g_shape_color[NUM_SHAPES];
-extern int g_shape_offset[NUM_SHAPES];
 
+struct shape_t {
+  int no;
+  char pixels[SHAPE_MAX_H][SHAPE_MAX_W];
+  unsigned long color;
+  int off_x;
+  int w, h;
+};
+
+extern const struct shape_t g_shape[NUM_SHAPES];
+
+
+/*                  shapeno,    y,           x  */
 
 #endif /* _blockstyle_h_ */

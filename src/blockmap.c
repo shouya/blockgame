@@ -9,11 +9,19 @@
 #include <shape.h>
 #include <game.h>
 
+struct move_buf {
+  int shape;
+  int w, h;
+  
+  int pixbuf[4][4];
+};
 
 struct block_t* bmap;
 
 #define SHPBUF_EMPTY (-1)
+
 static int shape_buf;
+static struct move_buf mov_buf;
 
 static void blockrmflag(int x, int y, int flags);
 static void blockaddflag(int x, int y, int flags);
@@ -131,8 +139,8 @@ int trycreateshape(void) {
   }
   for (j = SHAPE_MAX_H-1; j >= 0; --j) {
     for (i = 0; i != SHAPE_MAX_W; ++i) {
-      if (g_shape[shape_buf][j][i]) {
-        x = (g_cols-SHAPE_MAX_W)/2+g_shape_offset[shape_buf]+i;
+      if (g_shape[shape_buf].pixels[j][i]) {
+        x = (g_cols-SHAPE_MAX_W)/2+g_shape[shape_buf].off_x+i;
         y = j;
         if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
           return -1;
@@ -151,8 +159,8 @@ void createshape(void) {
   int x, y, i, j;
   for (j = SHAPE_MAX_H-1; j >= 0; --j)
     for (i = 0; i != SHAPE_MAX_W; ++i)
-      if (g_shape[shape_buf][j][i]) {
-        x = (g_cols-SHAPE_MAX_W)/2+g_shape_offset[shape_buf]+i;
+      if (g_shape[shape_buf].pixels[j][i]) {
+        x = (g_cols-SHAPE_MAX_W)/2+g_shape[shape_buf].off_x+i;
         y = j;
         createblock(shape_buf, x, y, FLAG_MOVABLE);
       }

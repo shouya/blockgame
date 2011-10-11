@@ -39,7 +39,7 @@ void rendercanvas(void) {
         x = i * g_boxsize;
         y = j * g_boxsize;
         fillrect(canvas, x, y, g_boxsize, g_boxsize,
-                 UNPIXRGB(g_shape_color[bmap[j*g_cols+i].shape]), 0xff);
+                 UNPIXRGB(g_shape[bmap[j*g_cols+i].shape].color), 0xff);
         drawrect(canvas, x, y, g_boxsize, g_boxsize,
                  0xff, 0xff, 0xff, 0x7f);
 
