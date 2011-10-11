@@ -37,6 +37,8 @@ void destroycanvas(void) {
 
 void rendercanvas(void) {
   SDL_FillRect(canvas, NULL, g_canvas_bg);
+  drawrect(canvas, 0, 0, canvas->clip_rect.w, canvas->clip_rect.h,
+           0xff, 0xff, 0xff, 0xff);
   rendermap();
   renderghost();
   rendershape();

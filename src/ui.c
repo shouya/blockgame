@@ -22,6 +22,8 @@ static void eventdeal(void);
 static void kbdeventdeal(SDL_KeyboardEvent* e);
 
 void initui(void) {
+  atexit(&SDL_Quit);
+  SDL_Init(SDL_INIT_EVERYTHING);
   g_ui = SDL_SetVideoMode(XRES, YRES, 32, SDL_SWSURFACE | SDL_DOUBLEBUF);
   if (!g_ui) {
     perror(SDL_GetError());

@@ -17,7 +17,7 @@ void newgame(void) {
   resetbmap();
   g_state = GAME_STARTED;
   g_score = 0;
-  g_level = 0;
+  g_level = 14;
   g_lnkilled = 0;
   puts("game started!");
 }

@@ -42,6 +42,8 @@ void resetbmap(void) {
   }
   g_canswap = 1;
   g_hold = -1;
+  newshape(shiftqueue());
+  automovedown();
 }
 
 

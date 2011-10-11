@@ -19,6 +19,7 @@
 static SDL_Surface* panel;
 
 
+
 static int renderinfo(int h);
 static int renderqueue(int h);
 static int renderhold(int h);
@@ -102,7 +103,7 @@ int renderqueue(int h) {
       for (j = 0; j != g_shape[g_queue[q]].h; ++j) {
         if (g_shape[g_queue[q]].pixels[j][i]) {
           x = (i /*+ g_shape[g_queue[q]].off_x*/) * oth_sz; y = j * oth_sz;
-          x += X_MARGIN+nxt_sz*SHAPE_MAX_W+oth_sz; y += h;
+          x += X_MARGIN+nxt_sz*SHAPE_MAX_W+10; y += h;
           fillrect(panel, x, y, oth_sz, oth_sz,
                    UNPIXRGB(g_shape[g_queue[q]].color),
                    0xff-0xf0*q/QUEUE_SIZE);
