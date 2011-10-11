@@ -9,26 +9,18 @@
 #include <shape.h>
 #include <game.h>
 
-struct move_buf {
-  int shape;
-  int w, h;
-  
-  int pixbuf[4][4];
-};
 
 struct block_t* bmap;
+struct movebuf_t g_movbuf;
+struct movebuf_t g_ghost;
 
 #define SHPBUF_EMPTY (-1)
 
 static int shape_buf;
-static struct move_buf mov_buf;
 
-static void blockrmflag(int x, int y, int flags);
-static void blockaddflag(int x, int y, int flags);
-static int createblock(int shape, int x, int y, int flags);
-static void destoryblock(int x, int y);
-/*static int moveblock(int x, int y, int off_x, int off_y);*/
 static void killline(int ln);
+static int checkmovbuf(void);
+static void setmovbuf(int shape, int x, int y, int rotate);
 
 
 void initbmap(void) {
@@ -56,6 +48,8 @@ void automovedown(void) {
       createshape();
     } else {
       gameover();
+      g_movbuf.shape = -1;
+      g_ghost.shape = -1;
     }
     return;
   }
@@ -71,247 +65,133 @@ void moveleft(void) {
   if (trymove(MOVE_LEFT) == 0) {
     domove(MOVE_LEFT);
   }
+  updateghost();
 }
 
 void moveright(void) {
   if (trymove(MOVE_RIGHT) == 0) {
     domove(MOVE_RIGHT);
   }
+  updateghost();
 }
 
+void dropdown(void) {
+  do {
+    ++g_movbuf.y;
+  } while (checkmovbuf() == 0);
+  --g_movbuf.y;
+}
+
+void softdrop(void) {
+  ++g_movbuf.y;
+  if (checkmovbuf() != 0) {
+    --g_movbuf.y;
+  }
+}
+
+void rotateleft(void) {
+  if (tryrotatebuf(-1) == 0) {
+    rotatebuf(-1);
+  }
+  updateghost();
+}
+void rotateright(void) {
+  if (tryrotatebuf(1) == 0) {
+    rotatebuf(1);
+  }
+  updateghost();
+}
 
 void newshape(int shape) {
   shape_buf = shape;
 }
 
-int createblock(int shape, int x, int y, int flags) {
-  if (bmap[y*g_cols+x].is_occupied) {
-    return -1;
-  }
-  bmap[y*g_cols+x].is_occupied = 1;
-  bmap[y*g_cols+x].shape = shape;
-  bmap[y*g_cols+x].flags = flags | FLAG_STEADY;
-  return 0;
-}
-
-
-void destoryblock(int x, int y) {
-  bmap[y*g_cols+x].is_occupied =
-    bmap[y*g_cols+x].flags =
-    bmap[y*g_cols+x].shape = 0;
-}
-
-void blockrmflag(int x, int y, int flags) {
-  bmap[y*g_cols+x].flags &= ~flags;
-}
-void blockaddflag(int x, int y, int flags) {
-  bmap[y*g_cols+x].flags |= flags;
-}
-
-/*
-int moveblock(int x, int y, int off_x, int off_y) {
-  int step = 0;
-  if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-    return -1;
-  }
-  if (bmap[y+off_y][x+off_x].is_occupied) {
-    step = moveblock(x+off_x, y+off_y, off_x, off_y);
-    if (step < 0) {
-      return -1;
-    }
-  }
-  
-  bmap[y+off_y][x+off_x].is_occupied = 1;
-  bmap[y+off_y][x+off_x].flags = bmap[y*g_cols+x].flags;
-  bmap[y+off_y][x+off_x].shape = bmap[y*g_cols+x].shape;
-  bmap[y*g_cols+x].flag = 0;
-  bmap[y*g_cols+x].is_occupied = 0;
-  bmap[y*g_cols+x].shape = 0;
-  return step + 1;
-}
-*/
 
 int trycreateshape(void) {
-  int x, y, i, j;
-
   if (shape_buf == SHPBUF_EMPTY) {
     return 0;
   }
-  for (j = SHAPE_MAX_H-1; j >= 0; --j) {
-    for (i = 0; i != SHAPE_MAX_W; ++i) {
-      if (g_shape[shape_buf].pixels[j][i]) {
-        x = (g_cols-SHAPE_MAX_W)/2+g_shape[shape_buf].off_x+i;
-        y = j;
-        if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-          return -1;
-        } else if (bmap[y*g_cols+x].is_occupied) {
-          return -1;
-        } else {
-          continue;
-        } /* if creatable */
-      } /* */
-    } /* for i */
-  } /* for j */
-  return 0;
+
+  setmovbuf(shape_buf, (g_cols-g_shape[shape_buf].w)/2, 0, 0);
+  return checkmovbuf();
 }
 
 void createshape(void) {
-  int x, y, i, j;
-  for (j = SHAPE_MAX_H-1; j >= 0; --j)
-    for (i = 0; i != SHAPE_MAX_W; ++i)
-      if (g_shape[shape_buf].pixels[j][i]) {
-        x = (g_cols-SHAPE_MAX_W)/2+g_shape[shape_buf].off_x+i;
-        y = j;
-        createblock(shape_buf, x, y, FLAG_MOVABLE);
-      }
+  setmovbuf(shape_buf, (g_cols-g_shape[shape_buf].w)/2, 0, 0);
   shape_buf = SHPBUF_EMPTY;
+  createghost();
   return;
 }
 
 int trymove(int direction) {
-  int i, j, x, y;
-  static int xno[80], yno[80];
-  int nop = 0;
   if (direction == MOVE_LEFT) {
-    for (j = 0; j != g_lines; ++j) {
-      for (i = 0; i != g_cols; ++i) {
-        if (bmap[j*g_cols+i].is_occupied && (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i-1;
-          y = j;
-          if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-            return -1;
-          } else if (bmap[y*g_cols+x].is_occupied) {
-            int p, nothing = 0;
-            for (p = 0; p != nop; ++p) {
-              if (xno[p] == x && yno[p] == y) {
-                nothing = 1;
-                break;
-              }
-            }
-            if (!nothing) {
-              return -1;
-            }
-          } /* if failed */
-          xno[nop] = i;
-          yno[nop++] = j;
-        } /* if movable */
-      } /* for i++ */
-    } /* for j++ */
-  } else if (direction == MOVE_RIGHT) { /* move right */
-    for (j = 0; j != g_lines; ++j) {
-      for (i = g_cols-1; i >= 0; --i) {
-        if (bmap[j*g_cols+i].is_occupied &&
-            (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i+1;
-          y = j;
-          if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-            return -1;
-          } else if (bmap[y*g_cols+x].is_occupied) {
-            int p, nothing = 0;
-            for (p = 0; p != nop; ++p) {
-              if (xno[p] == x && yno[p] == y) {
-                nothing = 1;
-                break;
-              }
-            }
-            if (!nothing) {
-              return -1;
-            }
-          } /* if failed */
-          xno[nop] = i;
-          yno[nop++] = j;
-        } /* if movable */
-      } /* for i-- */
-    } /* for j++ */
+    --g_movbuf.x;
+    if (checkmovbuf() == 0) {
+      ++g_movbuf.x;
+      return 0;
+    } else {
+      ++g_movbuf.x;
+      return -1;
+    }
+  } else if (direction == MOVE_RIGHT) {
+    ++g_movbuf.x;
+    if (checkmovbuf() == 0) {
+      --g_movbuf.x;
+      return 0;
+    } else {
+      --g_movbuf.x;
+      return -1;
+    }
   } else if (direction == MOVE_DOWN) {
-    for (i = 0; i != g_cols; ++i) {
-      for (j = g_lines-1; j >= 0; --j) {
-        if (bmap[j*g_cols+i].is_occupied &&
-            (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i;
-          y = j+1;
-          if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-            return -1;
-          } else if (bmap[y*g_cols+x].is_occupied) {
-            int p, nothing = 0;
-            for (p = 0; p != nop; ++p) {
-              if (xno[p] == x && yno[p] == y) {
-                nothing = 1;
-                break;
-              }
-            }
-            if (!nothing) {
-              return -1;
-            }
-          } /* if failed */
-          xno[nop] = i;
-          yno[nop++] = j;
-        } /* if movable */
-      } /* for j-- */
-    } /* for i++ */
-  } /* direction selector */
-  return 0;
+    ++g_movbuf.y;
+    if (checkmovbuf() == 0) {
+      --g_movbuf.y;
+      return 0;
+    } else {
+      --g_movbuf.y;
+      return -1;
+    }
+  } else { /* unkown direction */
+    return -1;
+  }
 }
 
 void domove(int direction) {
-  int x, y, i, j;
   if (direction == MOVE_LEFT) {
-    for (j = 0; j != g_lines; ++j) {
-      for (i = 0; i != g_cols; ++i) {
-        if (bmap[j*g_cols+i].is_occupied && (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i-1;
-          y = j;
-          bmap[y*g_cols+x].flags = bmap[j*g_cols+i].flags;
-          bmap[y*g_cols+x].is_occupied = 1;
-          bmap[y*g_cols+x].shape = bmap[j*g_cols+i].shape;
-          destoryblock(i, j);
-        }
-      } /* for i++ */
-    } /* for j++ */
+    --g_movbuf.x;
   } else if (direction == MOVE_RIGHT) { /* move right */
-    for (j = 0; j != g_lines; ++j) {
-      for (i = g_cols-1; i >= 0; --i) {
-        if (bmap[j*g_cols+i].is_occupied && (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i+1;
-          y = j;
-          bmap[y*g_cols+x].flags = bmap[j*g_cols+i].flags;
-          bmap[y*g_cols+x].is_occupied = 1;
-          bmap[y*g_cols+x].shape = bmap[j*g_cols+i].shape;
-          destoryblock(i, j);
-        }
-      } /* for i-- */
-    } /* for j++ */
+    ++g_movbuf.x;
   } else if (direction == MOVE_DOWN) {
-    for (i = 0; i != g_cols; ++i) {
-      for (j = g_lines-1; j >= 0; --j) {
-        if (bmap[j*g_cols+i].is_occupied && (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-          x = i;
-          y = j+1;
-          bmap[y*g_cols+x].flags = bmap[j*g_cols+i].flags;
-          bmap[y*g_cols+x].is_occupied = 1;
-          bmap[y*g_cols+x].shape = bmap[j*g_cols+i].shape;
-          destoryblock(i, j);
-        }
-      } /* for j-- */
-    } /* for i++ */
+    ++g_movbuf.y;
   } /* direction selector */
-  createghost();
 }
 
 
 void steadyall(void) {
-  int i, j;
-  for (i = 0; i != g_cols; ++i)
-    for (j = 0; j != g_lines; ++j)
-      if (bmap[j*g_cols+i].is_occupied && (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-        blockrmflag(i, j, FLAG_MOVABLE);
-        blockaddflag(i, j, FLAG_STEADY);
+  int i, j, x, y;
+  if (checkmovbuf() != 0) {
+    return;
+  }
+
+  for (i = 0; i != MOV_BUFSIZE; ++i) {
+    for (j = 0; j != MOV_BUFSIZE; ++j) {
+      if (g_movbuf.pixbuf[j][i]) {
+        x = i + g_movbuf.x;
+        y = j + g_movbuf.y;
+        bmap[y*g_cols+x].is_occupied = 1;
+        bmap[y*g_cols+x].shape = g_movbuf.shape;
+        bmap[y*g_cols+x].flags = FLAG_STEADY;
       }
+    }
+  }
 
   /* after steady, create a new shape */
-  newshape(rand()%NUM_SHAPES);
   checklines();
+  newshape(rand()%NUM_SHAPES);
 
+  g_movbuf.shape = -1;
+  updateghost();
+  
   return;
 }
 
@@ -330,12 +210,12 @@ void checklines(void) {
     }
     if (lncheck) {
       killline(j);
+      ++j; /* recheck the line */
       ++num_killed;
     }
   }
-  g_score += num_killed * num_killed * SCORE_PER_LINE;
-  if (num_killed)
-    printf("gotcha! now score: %d\n", g_score);
+
+  goal(num_killed * num_killed * SCORE_PER_LINE);
 }
 
 
@@ -351,56 +231,114 @@ void killline(int ln) {
   }
 }
 
-/* BUG !!!! */
 void createghost(void) {
-  int i,j, h=99, ij, nop = 0, x, y;
-  static int xno[80], yno[80];
-  for (i = 0; i != g_cols; ++i) {
-    for (j = g_lines-1; j >= 0; --j) {
-      blockrmflag(i, j, FLAG_GHOST);
-      if (bmap[j*g_cols+i].is_occupied &&
-          (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-        x = i;
-        ij = 1;
-        for (;;) {
-          y = j+ij;
-          if (x<0 || x>=g_cols || y<0 || y>=g_lines) {
-            break;
-          } else if (bmap[y*g_cols+x].is_occupied) {
-            int p, nothing = 0;
-            for (p = 0; p != nop; ++p) {
-              if (xno[p] == x && yno[p] == y) {
-                nothing = 1;
-                break;
-              }
-            }
-            if (!nothing) {
-              break;
-            } else {
-              xno[nop] = x;
-              yno[nop++] = y;
-            }
-          } else {
-            xno[nop] = x;
-            yno[nop++] = y;
-          }
-          ++ij;
-        }
-        if (ij < h) {
-          h = ij;
-          printf("x %d, y %d , ij %d, h %d\n", x, y, ij, h);
-        }
-      }
-    }
-  }
-  for (i = 0; i != g_cols; ++i) {
-    for (j = g_lines-1; j >= 0; --j) { 
-      if (bmap[j*g_cols+i].is_occupied &&
-          (bmap[j*g_cols+i].flags & FLAG_MOVABLE)) {
-        x = i;
-        y = j+h;
-        blockaddflag(x, y, FLAG_GHOST);
-      }
-    }
-  }
+  memcpy(&g_ghost, &g_movbuf, sizeof(struct movebuf_t));
+  updateghost();
 }
+
+void updateghost(void) {
+  int h;
+  if (g_movbuf.shape == -1) {
+    g_ghost.shape = -1;
+  }
+  if (g_ghost.rotate != g_movbuf.rotate) {
+    memcpy(&g_ghost.pixbuf, &g_movbuf.pixbuf, MOV_BUFSIZE*MOV_BUFSIZE);
+    g_ghost.rotate = g_movbuf.rotate;
+  }
+  g_ghost.x = g_movbuf.x;
+  h = g_movbuf.y;
+  dropdown();
+  g_ghost.y = g_movbuf.y;
+  g_movbuf.y = h;
+}
+
+/** static functions  **/
+int checkmovbuf(void) {
+  int i, j, x, y, nopix = 1;
+  for (i = 0; i != MOV_BUFSIZE; ++i) {
+    for (j = 0; j != MOV_BUFSIZE; ++j) {
+      if (g_movbuf.pixbuf[j][i]) {
+        nopix = 0;
+        x = i + g_movbuf.x;
+        y = j + g_movbuf.y;
+        if (x<0 || y<0 || x>=g_cols || y>=g_lines) {
+          return -1;
+        }
+        if (bmap[y*g_cols+x].is_occupied) {
+          return -1;
+        }
+      }
+    }
+  }
+  if (nopix) return -1;
+  return 0;
+}
+
+void setmovbuf(int shape, int x, int y, int rotate) {
+  int i, j;
+  /* DBG printf("shape is %d\n", shape); */
+  for (j = 0; j != MOV_BUFSIZE; ++j) {
+    for (i = 0; i != MOV_BUFSIZE; ++i) {
+      if (i >= g_shape[shape].w || j >= g_shape[shape].h) {
+        g_movbuf.pixbuf[j][i] = 0;
+      } else {
+        /* how to ignore -Warray-bounds here */
+        g_movbuf.pixbuf[j][i] = g_shape[shape].pixels[j][i];
+      }
+      /* DBG printf("%c ", g_movbuf.pixbuf[j][i]?'o':' '); */
+    }
+    /* DBG printf("\n"); */
+  }
+  g_movbuf.shape = shape;
+  g_movbuf.x = x; g_movbuf.y = y;
+  g_movbuf.rotate = rotate;
+  g_movbuf.w = g_shape[shape].w; g_movbuf.h = g_shape[shape].h;
+}
+
+int tryrotatebuf(int dir) {
+  int success;
+  rotatebuf(dir);
+  success = checkmovbuf();
+  rotatebuf(-dir);
+  return success;
+}
+
+void rotatebuf(int dir) {
+  static int xb[MOV_BUFSIZE*MOV_BUFSIZE];
+  static int yb[MOV_BUFSIZE*MOV_BUFSIZE];
+  int p = 0, i, j;
+  for (i = 0; i != MOV_BUFSIZE; ++i) {
+    for (j = 0; j != MOV_BUFSIZE; ++j) {
+      if (g_movbuf.pixbuf[j][i]) {
+        if (dir == 1) { /* clock wise 90' */
+          xb[p] = g_movbuf.h - (j+1);
+          yb[p] = i;
+        } else if (dir == -1) { /* counter clockwise 90' */
+          xb[p] = j;
+          yb[p] = g_movbuf.w - (i+1);
+        } else { /* just do nothing */
+          xb[p] = i;
+          yb[p] = j;
+        }
+        ++p;
+      } /* if pixel */
+    } /* for j */
+  } /* for i */
+
+  /* set the new position of pixels */
+  bzero(g_movbuf.pixbuf, MOV_BUFSIZE*MOV_BUFSIZE*sizeof(char));
+  for (i = 0; i != p; ++i) {
+    g_movbuf.pixbuf[yb[i]][xb[i]] = 1;
+  }
+  if (dir == 1 || dir == -1) { /* swap the width with height */
+    int swp = g_movbuf.w;
+    g_movbuf.w = g_movbuf.h;
+    g_movbuf.h = swp;
+  }
+  /* modify the rotate flag */
+  g_movbuf.rotate += dir;
+  if (g_movbuf.rotate == -1) g_movbuf.rotate = 3;
+  if (g_movbuf.rotate == 4) g_movbuf.rotate = 0;
+
+} /* end function rotatebuf */
+

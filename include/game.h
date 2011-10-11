@@ -11,6 +11,7 @@ extern int g_level;
 
 void newgame(void);
 void gameover(void);
+void pausegmae(void);
 
 
 

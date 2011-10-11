@@ -5,6 +5,7 @@
 
 #include <blockmap.h>
 #include <shape.h>
+#include <config.h>
 
 int g_state = GAME_WAITING;
 int g_score = 0;
@@ -24,9 +25,26 @@ void newgame(void) {
 
 void gameover(void) {
   g_state = GAME_WAITING;
+  printf("game over! your score is %d, level is %d!\n", g_score, g_level+1);
   puts("game over!");
 }
 
+void pausegmae(void) {
+  if (g_state == GAME_STARTED) {
+    g_state = GAME_PAUSED;
+    puts("paused.");
+  } else if (g_state == GAME_PAUSED) {
+    g_state = GAME_STARTED; 
+    puts("unpaused.");
+  }
+}
 
-
-
+void goal(int score) {
+  g_score += score;
+  while (g_score >= g_scorelst[g_level]) {
+    ++g_level;
+    if (g_level >= MAX_LEVEL) {
+      gameover();
+    }
+  }
+}

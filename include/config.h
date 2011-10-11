@@ -13,6 +13,8 @@ extern int g_cols;
 extern int g_boxsize;
 /* how many ms per line falling */
 extern int g_speed[MAX_LEVEL];
+/* scores to uplevel */
+extern int g_scorelst[MAX_LEVEL];
 /* the canvas's background color */
 extern Uint32 g_canvas_bg;
 

@@ -47,7 +47,7 @@ void mainloop(void) {
   is_quit = 0;
   int tick = SDL_GetTicks();
 
-  SDL_EnableKeyRepeat(200, 100);
+  SDL_EnableKeyRepeat(100, 70);
 
   srand(time(NULL));
   for (; !is_quit;) {
@@ -97,6 +97,19 @@ void kbdeventdeal(SDL_KeyboardEvent* e) {
     break;
   case SDLK_RIGHT:
     ctrlright();
+    break;
+  case SDLK_DOWN:
+    ctrlsoftdrop();
+    break;
+  case 'x':
+  case SDLK_UP:
+    ctrlrotateright();
+    break;
+  case 'z':
+    ctrlrotateleft();
+    break;
+  case SDLK_SPACE:
+    ctrldrop();
     break;
   default:;
   }

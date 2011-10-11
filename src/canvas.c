@@ -9,15 +9,25 @@
 
 static SDL_Surface* canvas;
 
+
+
+static void rendermap(void);
+static void renderblocks(void);
+static void rendershape(void);
+static void renderghost(void);
+
+
+
+
 void initcanvas(void) {
   canvas = SDL_CreateRGBSurface(SDL_SWSURFACE,
                                 g_cols * g_boxsize,
                                 g_lines * g_boxsize,
                                 32,
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                                0xff, 0xff<<8, 0xff<<16, 0
+                                0xff, 0xff<<8, 0xff<<16, 0xff<<24
 #else
-                                0xff<<16, 0xff<<8, 0xff, 0
+                                0xff<<16, 0xff<<8, 0xff, 0xff<<24
 #endif
     );
 
@@ -31,26 +41,11 @@ void destroycanvas(void) {
 }
 
 void rendercanvas(void) {
-  int i, j, x, y;
   SDL_FillRect(canvas, NULL, g_canvas_bg);
-  for (i = 0; i != g_cols; ++i) {
-    for (j = 0; j != g_lines; ++j) {
-      if (bmap[j*g_cols+i].is_occupied) {
-        x = i * g_boxsize;
-        y = j * g_boxsize;
-        fillrect(canvas, x, y, g_boxsize, g_boxsize,
-                 UNPIXRGB(g_shape[bmap[j*g_cols+i].shape].color), 0xff);
-        drawrect(canvas, x, y, g_boxsize, g_boxsize,
-                 0xff, 0xff, 0xff, 0x7f);
-
-      } else if (bmap[j*g_cols+i].flags & FLAG_GHOST) {
-        x = i * g_boxsize;
-        y = j * g_boxsize;
-        drawrect(canvas, x, y, g_boxsize, g_boxsize,
-                 0xff, 0xff, 0xff, 0xff);
-      }
-    }
-  }
+  rendermap();
+  renderghost();
+  rendershape();
+  renderblocks();
 }
 
 void blitcanvas(SDL_Surface* dst) {
@@ -59,4 +54,66 @@ void blitcanvas(SDL_Surface* dst) {
 }
 
 
+void rendermap(void) {
+  int i, j, x, y;
+  for (i = 0; i != g_cols; ++i) {
+    for (j = 0; j != g_lines; ++j) {
+      x = i * g_boxsize;
+      y = j * g_boxsize;
+      drawrect(canvas, x, y, g_boxsize, g_boxsize,
+               0x10, 0x10, 0x10, 0xff);
+    }
+  }
+
+  
+}
+
+void renderblocks(void) {
+  int i, j, x, y;
+  for (i = 0; i != g_cols; ++i) {
+    for (j = 0; j != g_lines; ++j) {
+      if (bmap[j*g_cols+i].is_occupied) {
+        x = i * g_boxsize;
+        y = j * g_boxsize;
+        fillrect(canvas, x, y, g_boxsize, g_boxsize,
+                 UNPIXRGB(g_shape[bmap[j*g_cols+i].shape].color), 0xff);
+        drawrect(canvas, x, y, g_boxsize, g_boxsize,
+                 0x7f, 0x7f, 0x7f, 0xff);
+      }
+    }
+  }
+}
+
+void renderghost(void) {
+  int i, j, x, y;
+  if (g_ghost.shape < 0) { return; }
+  for (i = 0; i != MOV_BUFSIZE; ++i) {
+    for (j = 0; j != MOV_BUFSIZE; ++j) {
+      if (i<0 || j<0 || i>=g_cols || j>=g_lines) return;
+      if (g_ghost.pixbuf[j][i]) {
+        x = i + g_ghost.x; x *= g_boxsize;
+        y = j + g_ghost.y; y *= g_boxsize;
+        fillrect(canvas, x, y, g_boxsize, g_boxsize,
+                 UNPIXRGB(g_shape[g_ghost.shape].color), 0xff);
+      }
+    }
+  }
+}
+
+void rendershape(void) {
+  int i, j, x, y;
+  if (g_movbuf.shape < 0) { return; }
+  for (i = 0; i != MOV_BUFSIZE; ++i) {
+    for (j = 0; j != MOV_BUFSIZE; ++j) {
+      if (g_movbuf.pixbuf[j][i]) {
+        x = i + g_movbuf.x; x *= g_boxsize;
+        y = j + g_movbuf.y; y *= g_boxsize;
+        fillrect(canvas, x, y, g_boxsize, g_boxsize,
+                 UNPIXRGB(g_shape[g_movbuf.shape].color), 0xff);
+        drawrect(canvas, x, y, g_boxsize, g_boxsize,
+                 0xff, 0xff, 0xff, 0x7f);
+      }
+    }
+  }
+}
 

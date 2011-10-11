@@ -2,16 +2,41 @@
 
 #include <control.h>
 #include <blockmap.h>
+#include <game.h>
 
 void ctrlleft(void) {
-  if (trymove(MOVE_LEFT) == 0) {
-    domove(MOVE_LEFT);
+  if (g_state == GAME_STARTED) {
+    moveleft();
   }
 }
 
 void ctrlright(void) {
-  if (trymove(MOVE_RIGHT) == 0) {
-    domove(MOVE_RIGHT);
+  if (g_state == GAME_STARTED) {
+    moveright();
   }
+}
 
+void ctrldrop(void) {
+  if (g_state == GAME_STARTED) {
+    dropdown();
+  }
+}
+
+
+void ctrlsoftdrop(void) {
+  if (g_state == GAME_STARTED) {
+    softdrop();
+  }
+}
+
+void ctrlrotateright(void) {
+  if (g_state == GAME_STARTED) {
+    rotateright();
+  }
+}
+
+void ctrlrotateleft(void) {
+  if (g_state == GAME_STARTED) {
+    rotateleft();
+  }
 }

@@ -12,6 +12,7 @@
 int g_lines;
 int g_cols;
 int g_speed[MAX_LEVEL];
+int g_scorelst[MAX_LEVEL];
 int g_boxsize;
 Uint32 g_canvas_bg;
 
@@ -36,8 +37,11 @@ void makedefault(void) {
   g_boxsize = 20;
   g_canvas_bg = PIXRGB(0,0,0);
 
+
   for (; i != MAX_LEVEL; ++i) {
     /* avg spd btw 100-500 */
     g_speed[i] = 500 - (500-100)/MAX_LEVEL*i;
+    g_scorelst[i] = 200 + 500 * i;
   }
+
 }
