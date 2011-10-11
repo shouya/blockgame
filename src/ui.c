@@ -7,6 +7,7 @@
 
 #include <ui.h>
 #include <canvas.h>
+#include <extpanel.h>
 #include <graphics.h>
 #include <control.h>
 #include <game.h>
@@ -29,12 +30,18 @@ void initui(void) {
   SDL_WM_SetCaption("The Block Game", 0);
   
   initcanvas();
+  initpanel();
 }
 
 void renderframe(void) {
   SDL_FillRect(g_ui, NULL, PIXRGB(0xff,0xff,0xff));
+
   rendercanvas();
   blitcanvas(g_ui);
+
+  renderpanel();
+  blitpanel(g_ui);
+
   SDL_Flip(g_ui);
 }
 
@@ -47,7 +54,7 @@ void mainloop(void) {
   is_quit = 0;
   int tick = SDL_GetTicks();
 
-  SDL_EnableKeyRepeat(100, 70);
+  SDL_EnableKeyRepeat(150, 100);
 
   srand(time(NULL));
   for (; !is_quit;) {
@@ -87,7 +94,7 @@ void kbdeventdeal(SDL_KeyboardEvent* e) {
   case SDLK_q:
     is_quit = 1;
     return;
-  case SDLK_n:
+  case 'n':
     if (e->keysym.mod & KMOD_CTRL) {
       newgame();
     }
@@ -107,6 +114,9 @@ void kbdeventdeal(SDL_KeyboardEvent* e) {
     break;
   case 'z':
     ctrlrotateleft();
+    break;
+  case 'c':
+    ctrlhold();
     break;
   case SDLK_SPACE:
     ctrldrop();

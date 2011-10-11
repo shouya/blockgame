@@ -8,10 +8,12 @@
 extern int g_state;
 extern int g_score;
 extern int g_level;
+extern int g_lnkilled;
 
 void newgame(void);
 void gameover(void);
 void pausegmae(void);
+void goal(int score);
 
 
 

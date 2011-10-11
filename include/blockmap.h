@@ -28,6 +28,11 @@ struct movebuf_t {
 extern struct movebuf_t g_movbuf;
 extern struct movebuf_t g_ghost;
 
+#define QUEUE_SIZE 7
+extern int g_queue[QUEUE_SIZE];
+extern int g_hold, g_canswap;
+
+
 
 void initbmap(void);
 void resetbmap(void);
@@ -62,5 +67,8 @@ void checklines(void);
 void createghost(void);
 void updateghost(void);
 
+void hold(void);
+
+int shiftqueue(void);
 
 #endif /* _blockmap_h_ */

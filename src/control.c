@@ -40,3 +40,9 @@ void ctrlrotateleft(void) {
     rotateleft();
   }
 }
+
+void ctrlhold(void) {
+  if (g_state == GAME_STARTED) {
+    hold();
+  }
+}

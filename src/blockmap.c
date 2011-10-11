@@ -9,10 +9,14 @@
 #include <shape.h>
 #include <game.h>
 
+#include <util.h>
 
 struct block_t* bmap;
 struct movebuf_t g_movbuf;
 struct movebuf_t g_ghost;
+
+int g_queue[QUEUE_SIZE];
+int g_hold, g_canswap;
 
 #define SHPBUF_EMPTY (-1)
 
@@ -31,7 +35,13 @@ void initbmap(void) {
 }
 
 void resetbmap(void) {
+  int i;
   bzero(bmap, g_cols * g_lines * sizeof(struct block_t));
+  for (i = 0; i != QUEUE_SIZE; ++i) {
+    g_queue[i] = myrand() % NUM_SHAPES ;
+  }
+  g_canswap = 1;
+  g_hold = -1;
 }
 
 
@@ -187,11 +197,14 @@ void steadyall(void) {
 
   /* after steady, create a new shape */
   checklines();
-  newshape(rand()%NUM_SHAPES);
+  newshape(shiftqueue());
 
   g_movbuf.shape = -1;
+
   updateghost();
-  
+
+  g_canswap = 1;
+
   return;
 }
 
@@ -215,6 +228,7 @@ void checklines(void) {
     }
   }
 
+  g_lnkilled += num_killed;
   goal(num_killed * num_killed * SCORE_PER_LINE);
 }
 
@@ -342,3 +356,29 @@ void rotatebuf(int dir) {
 
 } /* end function rotatebuf */
 
+
+void hold(void) {
+  if (g_canswap && g_movbuf.shape != -1) {
+    if (g_hold != -1) {
+      int shp = g_movbuf.shape;
+      g_movbuf.shape = -1;
+      newshape(g_hold);
+      g_hold = shp;
+    } else {
+      g_hold = g_movbuf.shape;
+      g_movbuf.shape = -1;
+      newshape(shiftqueue());
+    }
+    automovedown();
+    g_canswap = 0;
+  }
+}
+
+int shiftqueue(void) {
+  int s = g_queue[0], i;
+  for (i = 1; i != QUEUE_SIZE; ++i) {
+    g_queue[i-1] = g_queue[i];
+  }
+  g_queue[QUEUE_SIZE-1] = myrand() % NUM_SHAPES;
+  return s;
+}

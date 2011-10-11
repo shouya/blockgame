@@ -15,6 +15,8 @@ int g_speed[MAX_LEVEL];
 int g_scorelst[MAX_LEVEL];
 int g_boxsize;
 Uint32 g_canvas_bg;
+Uint32 g_panel_bg;
+
 
 static void makedefault(void);
 
@@ -34,8 +36,9 @@ void makedefault(void) {
 
   g_cols = 10;
   g_lines = 20;
-  g_boxsize = 20;
-  g_canvas_bg = PIXRGB(0,0,0);
+  g_boxsize = 20; 
+  g_canvas_bg = PIXRGB(0x0,0x0,0x0);
+  g_panel_bg = PIXRGB(0,0,0);
 
 
   for (; i != MAX_LEVEL; ++i) {

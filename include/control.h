@@ -7,6 +7,7 @@ void ctrldrop(void);
 void ctrlsoftdrop(void);
 void ctrlrotateright(void);
 void ctrlrotateleft(void);
+void ctrlhold(void);
 
 
 #endif /* _control_h_ */

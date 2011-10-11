@@ -24,12 +24,7 @@ void initcanvas(void) {
                                 g_cols * g_boxsize,
                                 g_lines * g_boxsize,
                                 32,
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                                0xff, 0xff<<8, 0xff<<16, 0xff<<24
-#else
-                                0xff<<16, 0xff<<8, 0xff, 0xff<<24
-#endif
-    );
+                                0xff<<16, 0xff<<8, 0xff, 0);
 
   if (!canvas) {
     perror(SDL_GetError());
@@ -61,7 +56,7 @@ void rendermap(void) {
       x = i * g_boxsize;
       y = j * g_boxsize;
       drawrect(canvas, x, y, g_boxsize, g_boxsize,
-               0x10, 0x10, 0x10, 0xff);
+               0xff, 0xff, 0xff, 0x8);
     }
   }
 
@@ -76,9 +71,9 @@ void renderblocks(void) {
         x = i * g_boxsize;
         y = j * g_boxsize;
         fillrect(canvas, x, y, g_boxsize, g_boxsize,
-                 UNPIXRGB(g_shape[bmap[j*g_cols+i].shape].color), 0xff);
+                 UNPIXRGB(g_shape[bmap[j*g_cols+i].shape].color), 0xf0);
         drawrect(canvas, x, y, g_boxsize, g_boxsize,
-                 0x7f, 0x7f, 0x7f, 0xff);
+                 0xff, 0xff, 0xff, 0x30);
       }
     }
   }
@@ -94,7 +89,7 @@ void renderghost(void) {
         x = i + g_ghost.x; x *= g_boxsize;
         y = j + g_ghost.y; y *= g_boxsize;
         fillrect(canvas, x, y, g_boxsize, g_boxsize,
-                 UNPIXRGB(g_shape[g_ghost.shape].color), 0xff);
+                 UNPIXRGB(g_shape[g_ghost.shape].color), 0x30);
       }
     }
   }

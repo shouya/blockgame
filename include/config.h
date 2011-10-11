@@ -17,6 +17,8 @@ extern int g_speed[MAX_LEVEL];
 extern int g_scorelst[MAX_LEVEL];
 /* the canvas's background color */
 extern Uint32 g_canvas_bg;
+/* extra panel background color */
+extern Uint32 g_panel_bg;
 
 
 #endif /* _config_h_*/
