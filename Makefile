@@ -10,7 +10,7 @@ SRC_DIR = src
 INC_DIR = include
 
 DEBUG = no
-PROFILE = nox
+PROFILE = no
 OPTIMIZATION = -O3
 
 ifeq ($(DEBUG), yes)

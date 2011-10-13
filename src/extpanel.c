@@ -11,6 +11,11 @@
 #include <shape.h>
 #include <blockmap.h>
 
+#ifdef __GNUC__ /* for ignore warning */
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#endif /* __GNUC__ */
+
 #define X_MARGIN 5
 #define Y_MARGIN 5
 #define TEXT_COLOR PIXRGB(0,0x7f,0)
@@ -139,5 +144,10 @@ int renderhold(int h) {
   }
   return h+const_h;
 }
+
+
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif /* __GNUC__ */
 
 

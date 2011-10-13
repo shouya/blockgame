@@ -298,8 +298,15 @@ void setmovbuf(int shape, int x, int y, int rotate) {
       if (i >= g_shape[shape].w || j >= g_shape[shape].h) {
         g_movbuf.pixbuf[j][i] = 0;
       } else {
+#ifdef __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Warray-bounds"
+#endif /* __GNUC__ */
         /* how to ignore -Warray-bounds here */
         g_movbuf.pixbuf[j][i] = g_shape[shape].pixels[j][i];
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif /* __GNUC__ */
       }
       /* DBG printf("%c ", g_movbuf.pixbuf[j][i]?'o':' '); */
     }
